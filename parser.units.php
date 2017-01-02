@@ -11,10 +11,6 @@ foreach ($techs[0] as $i => $tech) {
     preg_match_all('#enable = ([^\n]+)\n#i', $tech, $units);
 
     foreach ($units[1] as $u) {
-        if (!isset($unit['unit_type'])) {
-            //it's artillery, dont need that
-            continue;
-        }
 
         $un = file('military/units/'.trim($u).'.txt');
 
@@ -24,6 +20,11 @@ foreach ($techs[0] as $i => $tech) {
             if (isset($unity[1])) {
                 $unit[$unity[0]] = trim($unity[1]);
             }
+        }
+
+        if (!isset($unit['unit_type'])) {
+            //it's artillery, dont need that
+            continue;
         }
 
         if (count($unit)) {
