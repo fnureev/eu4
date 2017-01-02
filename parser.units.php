@@ -31,4 +31,4 @@ foreach ($techs[0] as $i => $tech) {
     }
 }
 
-file_put_contents('units.js', "var units = ".json_encode($result).";");
+file_put_contents('units.js', "var units = ".json_encode($result, JSON_PRETTY_PRINT).";");
