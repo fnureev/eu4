@@ -5,6 +5,6 @@ hull_size = 12
 base_cannons = 15
 sail_speed = 10
 
-trade_power = 4.0
+trade_power = 3.0
 
 sprite_level = 3
