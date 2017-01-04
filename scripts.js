@@ -11,16 +11,6 @@ function getmodifier(modifiers, tech)
     return mod;
 }
 
-function getdieresult(k)
-{
-    if(k <= -2)
-        { return die_results['-2']; }
-    if(k >= 13)
-        { return die_results[13]; }
-
-    return die_results[k];
-}
-
 function getunits(id)
 {
     techgroup = $('#techgroup'+id).val();
@@ -80,98 +70,68 @@ function fight()
     tech1 = $('#tech'+id).val()*1;
     unit = $('#unit'+id).val();
     unit1 = units[techgroup]['infantry'][unit] ||  units[techgroup]['cavalry'][unit];
-    unit1_morale = getmodifier(morale, tech1)*(100+$('#morale'+id).val()*1)/100;
 
     id = 2;
     techgroup = $('#techgroup'+id).val();
     tech2 = $('#tech'+id).val()*1;
     unit = $('#unit'+id).val();
     unit2 = units[techgroup]['infantry'][unit] ||  units[techgroup]['cavalry'][unit];
-    unit2_morale = getmodifier(morale, tech2)*(100+$('#morale'+id).val()*1)/100;
 
-
-    if(typeof unit1 == 'undefined' || typeof unit2 == 'undefined')
-    {
+    if(typeof unit1 == 'undefined' || typeof unit2 == 'undefined') {
         return false;
     }
 
+    unit1.tech = tech1;
+    unit1.discipline = $('#discipline1').val();
+    unit1.combatAbility = $('#strength1').val();
+    unit1.tactics = getmodifier(military_tactics, tech1)*unit1.discipline;
+    unit1.morale = getmodifier(land_morale, tech1) * $('#morale1').val();
+    unit2.tech = tech2;
+    unit2.discipline = $('#discipline2').val();
+    unit2.combatAbility = $('#strength2').val();
+    unit2.tactics = getmodifier(military_tactics, tech2)*unit2.discipline;
+    unit2.morale = getmodifier(land_morale, tech2) * $('#morale2').val();
+
     for (var i = -3; i < 14; i++)
     {
-        row = '<td>'+i+'</td>';
+        var row = '<td>'+i+'</td>';
 
-        damage = {};
-
-        unit1_modifier = $('#strength1').val()*1 * $('#dicsipline1').val()*1/$('#dicsipline2').val()*1;
-        unit2_modifier = $('#strength2').val()*1 * $('#dicsipline2').val()*1/$('#dicsipline1').val()*1;;
-
-        die = i+unit1.offensive_fire*1-unit2.defensive_fire*1;
-        row += '<td>'+die+'</td>';
-
-        modifier = unit1.type == 'infantry' ? getmodifier(infantry_fire, tech1) : getmodifier(cavalry_fire, tech1);
-        damage.unit1fire = (getdieresult(die)*unit1_modifier*modifier*1/getmodifier(tactics, tech2)*1);
-
-        row += '<td>'+damage.unit1fire.toFixed(2)+'</td>';
-
-        die = i+unit1.offensive_shock*1-unit2.defensive_shock*1;
-        row += '<td>'+die+'</td>';
-        modifier = unit1.type == 'infantry' ? getmodifier(infantry_shock, tech1) : getmodifier(cavalry_shock, tech1);
-        damage.unit1shock = (getdieresult(die)*unit1_modifier*modifier*1/getmodifier(tactics, tech2)*1);
-        row += '<td>'+damage.unit1shock.toFixed(2)+'</td>';
-
-        die = i+unit2.offensive_fire*1-unit1.defensive_fire*1;
-        row += '<td>'+die+'</td>';
-        modifier = unit2.type == 'infantry' ? getmodifier(infantry_fire, tech2) : getmodifier(cavalry_fire, tech2);
-        damage.unit2fire = (getdieresult(die)*unit2_modifier*modifier*1/getmodifier(tactics, tech1)*1);
-        row += '<td>'+damage.unit2fire.toFixed(2)+'</td>';
-
-        die = i+unit2.offensive_shock*1-unit1.defensive_shock*1;
-        row += '<td>'+die+'</td>';
-        modifier = unit2.type == 'infantry' ? getmodifier(infantry_shock, tech2) : getmodifier(cavalry_shock, tech2);
-        damage.unit2shock = (getdieresult(die)*unit2_modifier*modifier*1/getmodifier(tactics, tech1)*1);
-        row += '<td>'+damage.unit2shock.toFixed(2)+'</td>';
-
-        die = i+unit2.offensive_morale*1-unit1.defensive_morale*1;
-        morale_damage = getdieresult(die)*0.01/6*unit1_modifier*unit1_morale/getmodifier(tactics, tech1)*1;
-        row += '<td>'+morale_damage.toFixed(2)+'</td>';
-        die = i+unit1.offensive_morale*1-unit2.defensive_morale*1;
-        morale_damage = getdieresult(die)*0.01/6*unit2_modifier*unit2_morale/getmodifier(tactics, tech2)*1;
-        row += '<td>'+morale_damage.toFixed(2)+'</td>';
-
-        compare = (damage.unit2fire+damage.unit2shock)/(damage.unit1fire+damage.unit1shock);
-        //compare = (damage.unit1fire+damage.unit1shock)/(damage.unit2fire+damage.unit2shock);
-        row += '<td>'+compare.toFixed(2)+'</td>';
-
+        row += '<td>' + getDamage('fire', i, unit1, unit2) + '</td>';
+        row += '<td>' + getDamage('shock', i, unit1, unit2) + '</td>';
+        row += '<td>' + getDamage('fire', i, unit2, unit1) + '</td>';
+        row += '<td>' + getDamage('shock', i, unit2, unit1) + '</td>';
+        row += '<td>' + getDamage('morale', i, unit1, unit2) + '</td>';
+        row += '<td>' + getDamage('morale', i, unit2, unit1) + '</td>';
 
         $('#units').append('<tr>'+row+'</tr>');
     }
+}
 
+function validateStage(stage) {
+    if (stage != 'fire' && stage != 'shock' && stage != 'morale') {
+        return 'fire';
+    }
+    return stage;
+}
 
-    sum = 0;
-    sum1 = 0;
-    sum2 = 0;
-    c = 0;
+function getDamage(stage, die, unit1, unit2) {
+    stage = validateStage(stage);
 
-    $('#units tr:gt(0)').each(function ()
-    {
-        c++;
-        sum += $(this).find('td:last').text()*1;
-        sum1 += $(this).find('td').eq(-3).text()*1;
-        sum2 += $(this).find('td').eq(-2).text()*1;
-    });
+    die = die*1 + unit1['offensive_' + stage]*1 + unit2['defensive_' + stage]*1;
+    casualties = 15 + 5 * die;
+    modifier = 1;
+    if (stage != 'morale') {
+        modifier = getmodifier(window[unit1.type + '_' + stage], unit1.tech);
+    }
+    combatAbility = unit1.combatAbility;
+    discipline = unit1.discipline;
+    tactics = unit2.tactics;
 
-    $('#units').append('<tr>'
-            +'<td></td>'
-            +'<td></td>'
-            +'<td></td>'
-            +'<td></td>'
-            +'<td></td>'
-            +'<td></td>'
-            +'<td></td>'
-            +'<td></td>'
-            +'<td>Average</td>'
-            +'<td>'+(sum1/c).toFixed(2)+'</td>'
-            +'<td>'+(sum2/c).toFixed(2)+'</td>'
-            +'<td>'+(sum/c).toFixed(2)+'</td>'
-            +'</tr>');
+    damage = casualties * modifier * combatAbility * discipline / tactics;
 
+    if (stage == 'morale') {
+        damage = damage * unit1.morale / 600;
+    }
+
+    return damage.toFixed(2);
 }
