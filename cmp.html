@@ -149,9 +149,6 @@ Strength: <input type="text" id="strength2" value="1" size="1" onChange="fight()
 Morale: <input type="text" id="morale2" value="1" size="1" onChange="fight();">
 <br><Br>
 
-
-
-
 <table id="units">
 <tr>
     <td>Die<br> roll</td>
@@ -164,9 +161,20 @@ Morale: <input type="text" id="morale2" value="1" size="1" onChange="fight();">
 </tr>
 </table>
 
+<table id="combat">
+    <tr>
+        <td>Phase</td>
+        <td>Damage, unit1</td>
+        <td>Survivors, unit1</td>
+        <td>Morale, unit1</td>
+        <td>Damage, unit2</td>
+        <td>Survivors, unit2</td>
+        <td>Morale, unit2</td>
+    </tr>
+</table>
 
 <style>
-#units td:not(:first-child)
+#units td:not(:first-child), #combat td:not(:first-child)
     { border-left: 1px solid black; }
 td
     { text-align :center; }

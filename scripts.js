@@ -62,35 +62,48 @@ function getunits(id)
     fight();
 }
 
-function fight()
-{
-    $('#units tr:not(:first)').remove();
-    id = 1;
+function getUnit(id) {
     techgroup = $('#techgroup'+id).val();
-    tech1 = $('#tech'+id).val()*1;
-    unit = $('#unit'+id).val();
-    unit1 = units[techgroup]['infantry'][unit] ||  units[techgroup]['cavalry'][unit];
+    tech = $('#tech'+id).val()*1;
+    unitName = $('#unit'+id).val();
 
-    id = 2;
-    techgroup = $('#techgroup'+id).val();
-    tech2 = $('#tech'+id).val()*1;
-    unit = $('#unit'+id).val();
-    unit2 = units[techgroup]['infantry'][unit] ||  units[techgroup]['cavalry'][unit];
+    u = units[techgroup]['infantry'][unitName] || units[techgroup]['cavalry'][unitName];
 
-    if(typeof unit1 == 'undefined' || typeof unit2 == 'undefined') {
+    if(typeof u == 'undefined') {
         return false;
     }
 
-    unit1.tech = tech1;
-    unit1.discipline = $('#discipline1').val();
-    unit1.combatAbility = $('#strength1').val();
-    unit1.tactics = getmodifier(military_tactics, tech1)*unit1.discipline;
-    unit1.morale = getmodifier(land_morale, tech1) * $('#morale1').val();
-    unit2.tech = tech2;
-    unit2.discipline = $('#discipline2').val();
-    unit2.combatAbility = $('#strength2').val();
-    unit2.tactics = getmodifier(military_tactics, tech2)*unit2.discipline;
-    unit2.morale = getmodifier(land_morale, tech2) * $('#morale2').val();
+    var unit = {
+        'type': u.type,
+        'offensive_morale': u.offensive_morale,
+        'defensive_morale': u.defensive_morale,
+        'offensive_fire': u.offensive_fire,
+        'defensive_fire': u.defensive_fire,
+        'offensive_shock': u.offensive_shock,
+        'defensive_shock': u.defensive_shock,
+    };
+
+    unit.id = id;
+    unit.tech = tech1;
+    unit.discipline = $('#discipline'+id).val();
+    unit.combatAbility = $('#strength'+id).val();
+    unit.tactics = getmodifier(military_tactics, tech)*unit1.discipline;
+    unit.morale = getmodifier(land_morale, tech) * $('#morale'+id).val();
+
+    return unit;
+}
+
+function fight()
+{
+    $('#units tr:not(:first)').remove();
+    $('#combat tr:not(:first)').remove();
+
+    unit1 = getUnit(1);
+    unit2 = getUnit(2);
+
+    if (!unit1 || !unit2) {
+        return false;
+    }
 
     for (var i = -3; i < 14; i++)
     {
@@ -105,6 +118,70 @@ function fight()
 
         $('#units').append('<tr>'+row+'</tr>');
     }
+
+    var i = 0;
+    var stage = 'fire';
+    var die = 5;
+
+    unit1.casualties = 0;
+    unit1.currentMorale = unit1.morale;
+    unit2.casualties = 0;
+    unit2.currentMorale = unit2.morale;
+
+    while (unit1.casualties < 1000 &&
+            unit2.casualties < 1000 &&
+            unit1.currentMorale > 0.005 &&
+            unit2.currentMorale > 0.005) {
+        i++;
+
+        [damage1, damage2, moraleDamage1, moraleDamage2] = combatStage(stage, die, unit1, unit2);
+
+        unit1.casualties += Math.ceil(damage2);
+        unit2.casualties += Math.ceil(damage1)
+
+        unit1.currentMorale -= moraleDamage2;
+        unit2.currentMorale -= moraleDamage1;
+
+        var row = '';
+
+        row += '<td>' + i + '. ' + stage + '</td>';
+        row += '<td>' + damage1.toFixed(2) + '</td>';
+        row += '<td>' + (1000 - unit1.casualties) + '</td>';
+        row += '<td>' + unit1.currentMorale.toFixed(2) + '</td>';
+        row += '<td>' + damage2.toFixed(2) + '</td>';
+        row += '<td>' + (1000 - unit2.casualties) + '</td>';
+        row += '<td>' + unit2.currentMorale.toFixed(2) + '</td>';
+
+        $('#combat').append('<tr>'+row+'</tr>');
+
+        if (i%3 == 0) {
+            if (stage == 'fire') {
+                stage = 'shock';
+            } else {
+                stage = 'fire';
+            }
+        }
+    }
+}
+
+function combatStage(stage, die, unit1, unit2) {
+    stage = validateStage(stage);
+
+    modifier1 = (1000 - unit1.casualties) / 1000;
+    modifier2 = (1000 - unit2.casualties) / 1000;
+
+    damage1 = getDamage(stage, die, unit1, unit2) * modifier1;
+    damage2 = getDamage(stage, die, unit2, unit1) * modifier2;
+
+    moraleDamage1 = getDamage('morale', die, unit1, unit2)
+        * getmodifier(window[unit1.type + '_' + stage], unit1.tech)
+        * modifier1;
+
+    moraleDamage2 = getDamage('morale', die, unit2, unit1)
+        * getmodifier(window[unit2.type + '_' + stage], unit2.tech)
+        * modifier2;
+
+    return [damage1, damage2, moraleDamage1, moraleDamage2];
 }
 
 function validateStage(stage) {
