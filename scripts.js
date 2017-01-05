@@ -194,7 +194,7 @@ function validateStage(stage) {
 function getDamage(stage, die, unit1, unit2) {
     stage = validateStage(stage);
 
-    die = die*1 + unit1['offensive_' + stage]*1 + unit2['defensive_' + stage]*1;
+    die = die*1 + unit1['offensive_' + stage]*1 - unit2['defensive_' + stage]*1;
     casualties = 15 + 5 * die;
     modifier = 1;
     if (stage != 'morale') {
