@@ -84,10 +84,10 @@ function getUnit(id) {
     };
 
     unit.id = id;
-    unit.tech = tech1;
+    unit.tech = tech;
     unit.discipline = $('#discipline'+id).val();
     unit.combatAbility = $('#strength'+id).val();
-    unit.tactics = getmodifier(military_tactics, tech)*unit1.discipline;
+    unit.tactics = getmodifier(military_tactics, tech)*unit.discipline/100;
     unit.morale = getmodifier(land_morale, tech) * $('#morale'+id).val();
 
     return unit;
@@ -204,7 +204,7 @@ function getDamage(stage, die, unit1, unit2) {
     discipline = unit1.discipline;
     tactics = unit2.tactics;
 
-    damage = casualties * modifier * combatAbility * discipline / tactics;
+    damage = casualties * modifier * combatAbility * discipline/100 / tactics;
 
     if (stage == 'morale') {
         damage = damage * unit1.morale / 600;
