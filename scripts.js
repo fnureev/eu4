@@ -95,7 +95,6 @@ function getUnit(id) {
 
 function fight()
 {
-    $('#units tr:not(:first)').remove();
     $('#combat tr:not(:first)').remove();
 
     unit1 = getUnit(1);
@@ -103,20 +102,6 @@ function fight()
 
     if (!unit1 || !unit2) {
         return false;
-    }
-
-    for (var i = -3; i < 14; i++)
-    {
-        var row = '<td>'+i+'</td>';
-
-        row += '<td>' + getDamage('fire', i, unit1, unit2) + '</td>';
-        row += '<td>' + getDamage('shock', i, unit1, unit2) + '</td>';
-        row += '<td>' + getDamage('fire', i, unit2, unit1) + '</td>';
-        row += '<td>' + getDamage('shock', i, unit2, unit1) + '</td>';
-        row += '<td>' + getDamage('morale', i, unit1, unit2) + '</td>';
-        row += '<td>' + getDamage('morale', i, unit2, unit1) + '</td>';
-
-        $('#units').append('<tr>'+row+'</tr>');
     }
 
     var i = 0;
