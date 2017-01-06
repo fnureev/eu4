@@ -89,6 +89,7 @@ function getUnit(id) {
     unit.combatAbility = $('#strength'+id).val();
     unit.tactics = getmodifier(military_tactics, tech)*unit.discipline/100;
     unit.morale = getmodifier(land_morale, tech) * $('#morale'+id).val();
+    unit.die = $('#die'+id).val();
 
     return unit;
 }
@@ -106,7 +107,6 @@ function fight()
 
     var i = 0;
     var stage = 'fire';
-    var die = 5;
 
     unit1.casualties = 0;
     unit1.currentMorale = unit1.morale;
@@ -119,7 +119,7 @@ function fight()
             unit2.currentMorale > 0.005) {
         i++;
 
-        [damage1, damage2, moraleDamage1, moraleDamage2] = combatStage(stage, die, unit1, unit2);
+        [damage1, damage2, moraleDamage1, moraleDamage2] = combatStage(stage, unit1, unit2);
 
         unit1.casualties += Math.ceil(damage2);
         unit2.casualties += Math.ceil(damage1)
@@ -149,20 +149,20 @@ function fight()
     }
 }
 
-function combatStage(stage, die, unit1, unit2) {
+function combatStage(stage, unit1, unit2) {
     stage = validateStage(stage);
 
     modifier1 = (1000 - unit1.casualties) / 1000;
     modifier2 = (1000 - unit2.casualties) / 1000;
 
-    damage1 = getDamage(stage, die, unit1, unit2) * modifier1;
-    damage2 = getDamage(stage, die, unit2, unit1) * modifier2;
+    damage1 = getDamage(stage, unit1.die, unit1, unit2) * modifier1;
+    damage2 = getDamage(stage, unit2.die, unit2, unit1) * modifier2;
 
-    moraleDamage1 = getDamage('morale', die, unit1, unit2)
+    moraleDamage1 = getDamage('morale', unit1.die, unit1, unit2)
         * getmodifier(window[unit1.type + '_' + stage], unit1.tech)
         * modifier1;
 
-    moraleDamage2 = getDamage('morale', die, unit2, unit1)
+    moraleDamage2 = getDamage('morale', unit2.die, unit2, unit1)
         * getmodifier(window[unit2.type + '_' + stage], unit2.tech)
         * modifier2;
 
