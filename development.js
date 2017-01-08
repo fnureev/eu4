@@ -8,9 +8,7 @@ function developmentCost(d) {
     return 3*y * (5*y + d%10 -4);
 }
 
-function getTotalCost(dev, discount) {
-    var baseCost = 50;
-
+function getTotalCost(dev, discount, baseCost) {
     var percent = 0;
     var cost = 0;
 
@@ -31,9 +29,10 @@ function run() {
 
     var result = [];
     var discount = $('#discount').val()*1;
+    var baseCost = $('#baseCost').val()*1;
 
     for (i = 3; i < 40; i++) {
-        var o = {dev: i, 'cost': getTotalCost(i, discount)};
+        var o = {dev: i, 'cost': getTotalCost(i, discount, baseCost)};
         result.push(o);
     }
 
